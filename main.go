@@ -3,10 +3,33 @@ package main
 import (
 	"fmt"
 	"io"
+	"os/exec"
 	"net/http"
 	"os"
 	"strings"
+	"strconv"
 )
+
+func decompress(filename string){
+	cmd := exec.Command("/usr/bin/tar", "-xf " + "data/"+filename+ " -C data")
+	fmt.Printf("Пытаюсь распаковать\n")
+	err := cmd.Run()
+	fmt.Printf("Завершено с ошибкой: %v", err)
+}
+
+
+func resetdata(){
+	fmt.Print("Стираю временные данные\n")
+	os.RemoveAll("data")
+
+}
+
+func initial() {
+	fmt.Printf("Инициализация\n")
+	os.Mkdir("data", 0750)
+	fmt.Printf("Инициализация завершена\n")
+}
+
 func check(e error) {
     if e != nil {
         panic(e)
@@ -18,28 +41,32 @@ func readfile(){
 	check(err)
 	newlist := strings.Fields(string(dat))
 	lenght:=len(newlist)
-	fmt.Print(newlist[0])
-	fmt.Print(lenght)
+
+	for i := 0; i < lenght; i++ {
+        fmt.Println("Запуск загрузки: ",newlist[i], "Индекс: ", i)
+		index := strconv.Itoa(i)
+		download(newlist[i], index)
+}
 }
 
 func main(){
+initial()
 readfile()
-//download("img.freepik.com/premium-photo/british-shorthair-kitten-3-5-months-old-sitting-looking-up_191971-4591.jpg", "test.png")
+decompress("0")
+//resetdata()
 }
 
 
 
 func download(url string, name string) {
 	prefix := "https://"
-	err := DownloadFile(name, prefix+url)
+	err := DownloadFile("data/"+name, prefix+url)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Загружено по url: " + url + "Имя: "+name)
+	fmt.Println("Загружено по url: " + url + " Имя: "+name)
 }
 
-// DownloadFile will download a url to a local file. It's efficient because it will
-// write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string) error {
 
 	// Get the data
